@@ -1,0 +1,17 @@
+.gradle/
+**/build/
+local.properties
+.idea/
+*.iml
+*.apk
+*.aab
+*.jks
+*.keystore
+keystore.properties
+.env
+.env.*
+.DS_Store
+DEPLOYMENT.md
+hosting/nas-shortcut/
+install-qr.png
+serve-apk.cjs

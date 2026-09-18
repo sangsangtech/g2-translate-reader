@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
+  <title>G2 번역 읽기 — 픽셀 양방향 화살표</title>
+  <rect width="108" height="108" rx="24" fill="#f5f5f5"/>
+  <g transform="translate(54 54) scale(1.15) translate(-54 -54)">
+    <path fill="#080808" d="M30 38H62V30H70V38H78V46H70V54H62V46H30Z M78 62H46V54H38V62H30V70H38V78H46V70H78Z"/>
+  </g>
+</svg>

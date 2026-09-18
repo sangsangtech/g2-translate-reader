@@ -1,0 +1,22 @@
+// Only explicit public artifacts are copied; source, keys and local configuration stay out.
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const root = __dirname;
+const externalDownload = process.argv[2];
+if (externalDownload && new URL(externalDownload).protocol !== 'https:') throw new Error('Public download requires HTTPS');
+const output = path.join(root, 'build', externalDownload ? 'pages-site' : 'public-site');
+const gradle = fs.readFileSync(path.join(root, 'app/build.gradle'), 'utf8');
+const version = gradle.match(/versionName\s+'([^']+)'/)?.[1];
+if (!version) throw new Error('App version missing');
+const apk = fs.readFileSync(path.join(root, 'app/build/outputs/apk/debug/app-debug.apk'));
+fs.mkdirSync(output, {recursive:true});
+const write = (name, data) => { const target=path.join(output,name); fs.mkdirSync(path.dirname(target),{recursive:true}); fs.writeFileSync(target,data); };
+const escapeAttribute = s => s.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
+const downloadLinks = s => externalDownload ? s.replaceAll('href="/g2-translate-reader.apk"','href="'+escapeAttribute(externalDownload)+'"').replace(/ download="[^"]*"/g,'') : s;
+write('index.html',downloadLinks(fs.readFileSync(path.join(root,'site-index.html'),'utf8').replaceAll('__VERSION__',version).replaceAll('__SIZE__',(apk.length/1000000).toFixed(1))));
+for (const [source,dest] of [['preview.html','preview/index.html'],['icon-preview.html','icon/index.html'],['icon.svg','icon.svg']]) write(dest,downloadLinks(fs.readFileSync(path.join(root,source),'utf8')));
+if (!externalDownload) write('g2-translate-reader.apk',apk);
+write('release.json',JSON.stringify({version,androidMinimum:15,file:externalDownload || 'g2-translate-reader.apk',bytes:apk.length,sha256:crypto.createHash('sha256').update(apk).digest('hex')},null,2)+'\n');
+write('_headers','/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n/g2-translate-reader.apk\n  Content-Type: application/vnd.android.package-archive\n  Content-Disposition: attachment; filename="g2-translate-reader-'+version+'.apk"\n  Cache-Control: no-cache\n/release.json\n  Cache-Control: no-cache\n');
+console.log('Public site prepared:',output,'—',version,'—',apk.length,'bytes');
